@@ -1,0 +1,268 @@
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JIP Substation Locations</title>
+<style>
+body{
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background:linear-gradient(180deg,#020617,#111827);
+    color:#e5e7eb;
+    margin:0;
+}
+.header{
+    position:sticky;
+    top:0;
+    background:#020617;
+    padding:15px 20px;
+    z-index:1000;
+    box-shadow:0 4px 10px rgba(0,0,0,.4);
+}
+h1{text-align:center;color:#60a5fa;margin:0;font-size:22px;}
+.subtitle{text-align:center;color:#9ca3af;font-size:13px;}
+.counter{text-align:center;margin-top:6px;color:#86efac;font-size:13px;}
+input{
+    width:100%;padding:14px;font-size:16px;border-radius:12px;
+    border:none;margin-top:12px;background:#1f2933;color:#e5e7eb;
+}
+.content{padding:20px;}
+ul{list-style:none;padding:0;margin:0;}
+li{
+    background:#1f2937;margin:10px 0;padding:16px;border-radius:14px;
+    cursor:pointer;display:flex;justify-content:space-between;align-items:center;
+}
+li:hover{background:#374151;}
+.name{font-size:15px;}
+.btn{
+    background:#60a5fa;color:#020617;border:none;
+    padding:6px 10px;border-radius:8px;font-size:12px;
+}
+.add-btn{width:100%;margin-top:10px;padding:10px;font-size:14px;}
+footer{text-align:center;margin:30px 0;font-size:12px;color:#6b7280;}
+.note{font-size:12px;color:#fbbf24;text-align:center;margin-top:8px;}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>JIP SUBSTATION LOCATIONS</h1>
+    <div class="subtitle">Search & navigate substations</div>
+    <div class="counter" id="count"></div>
+    <input type="text" id="search" placeholder="Search substation...">
+    <button class="btn add-btn" onclick="addMyLocation()">➕ إضافة موقعي الحالي</button>
+    <div class="note">⚠️ يجب فتح الملف من متصفح (Chrome) والسماح بالـ Location</div>
+</div>
+
+<div class="content">
+    <ul id="list"></ul>
+</div>
+
+<footer>JIP Locations – HTML Web Tool</footer>
+
+<script>
+/* ===== ORIGINAL PLACES (112+) محفوظة كما هي ===== */
+const basePlaces = [
+{name:"ss 16",lat:"21.47629277404596",lon:"39.16712394875651"},
+{name:"ss 530",lat:"21.4730227",lon:"39.1663514"},
+{name:"ss 203",lat:"21.4814244",lon:"39.1529477"},
+{name:"ss  410",lat:"21.48077582657519",lon:"39.15221986592998"},
+{name:"ss ship repare yard",lat:"21.4806162941655",lon:"39.15220106266196"},
+{name:"ss 208",lat:"21.47233913800734",lon:"39.14861466450073"},
+{name:"ss 440",lat:"21.47256921390555",lon:"39.14856450353891"},
+{name:"ss 209",lat:"21.47041935994358",lon:"39.14915382281636"},
+{name:"ss 500",lat:"21.45717910519255",lon:"39.16965397791921"},
+{name:"ss 13",lat:"21.45956602487636",lon:"39.16927071730456"},
+{name:"ss 26",lat:"21.46059428762526",lon:"39.1696155876386"},
+{name:"SS 430",lat:"21.4747620898327",lon:"39.15432848179955"},
+{name:"SS 207",lat:"21.47339929155244",lon:"39.1539952304875"},
+{name:"SS 206",lat:"21.47354503304017",lon:"39.15396898074902"},
+{name:"SS ST",lat:"21.46851152915411",lon:"39.14967127181062"},
+{name:"ss 490",lat:"21.45158763958519",lon:"39.17797063946075"},
+{name:"ss 11",lat:"21.44887799527821",lon:"39.16938746502244"},
+{name:"com 12a -490 co21",lat:"21.45187145867136",lon:"39.17789002850765"},
+{name:"ss 39 ,40",lat:"21.44795712187181",lon:"39.17480404906879"},
+{name:"ss 30",lat:"21.45006134220321",lon:"39.16879068198971"},
+{name:"ss 29",lat:"21.45167566212093",lon:"39.17205793776026"},
+{name:"ss parking",lat:"21.46832496622708",lon:"39.16118129091224"},
+{name:"CPA 1 co 68",lat:"21.46771315777817",lon:"39.16307651271855"},
+{name:"CPA 02 co 69",lat:"21.46718100219847",lon:"39.16520564235187"},
+{name:"CPA 03 co 70",lat:"21.46926840429142",lon:"39.16238126746768"},
+{name:"SS 201",lat:"21.48415084388326",lon:"39.16285949694872"},
+{name:"SS 420",lat:"21.48440348776331",lon:"39.16429228838625"},
+{name:"SS 35",lat:"21.48441211281637",lon:"39.16408199575393"},
+{name:"SS 213",lat:"21.48274006049613",lon:"39.15469199129372"},
+{name:"ss app",lat:"21.46593113096806",lon:"39.17264411952713"},
+{name:"ss 202",lat:"21.4820021",lon:"39.1548735"},
+{name:"ss 520",lat:"21.46550927224765",lon:"39.17270470516563"},
+{name:"بيت عيد",lat:"21.5192226",lon:"39.258774"},
+{name:"قهوة",lat:"21.4740357",lon:"39.1822759"},
+{name:"ss 540",lat:"21.46603905479595",lon:"39.1662826568508"},
+{name:"com 540 ss540 co 63",lat:"21.46605468205888",lon:"39.16647418613249"},
+{name:"com 2 co 60",lat:"21.46626676145012",lon:"39.16615639371751"},
+{name:"c 2A ss 540 co 62",lat:"21.46784141195348",lon:"39.16637564239272"},
+{name:"CID  co75",lat:"21.46939092135315",lon:"39.16566714767622"},
+{name:"3 after cid R -15 jail foffice",lat:"21.46951446437048",lon:"39.16213685429089"},
+{name:"comp 3 co 72",lat:"21.46848023435196",lon:"39.16038699587924"},
+{name:"comp 15",lat:"21.46843906657866",lon:"39.15876253614796"},
+{name:"comp fire safety back co 65",lat:"21.46822014239342",lon:"39.16717501419567"},
+{name:"dog se",lat:"21.4543520670634",lon:"39.1761780984985"},
+{name:"comp fire safety front co 64",lat:"21.46833613130791",lon:"39.16671399902518"},
+{name:"COM CWS",lat:"21.46453359792947",lon:"39.16958395404867"},
+{name:"com 47",lat:"21.46635222255478",lon:"39.16958934816962"},
+{name:"com nh3 mew con39",lat:"21.4734256565243",lon:"39.17127492866572"},
+{name:"ats passeenger terminal",lat:"21.47339222691298",lon:"39.17127689864993"},
+{name:"com nh3 com 37",lat:"21.4733543754706",lon:"39.1712856914258"},
+{name:"com 14 co 14 -c-xray01/ss530 co 66",lat:"21.47363295621152",lon:"39.17053313954055"},
+{name:"مستشفي جنب صاله ركاب",lat:"21.4709229",lon:"39.1720306"},
+{name:"my home",lat:"21.4544435859343",lon:"39.1772610617258"},
+{name:"com civil &electrical work ss520 co 76",lat:"21.47019115659753",lon:"39.16650474052071"},
+{name:"c 530/ss520 c013",lat:"21.47303742653758",lon:"39.16651890453523"},
+{name:"comp 5A عند بوابه ٤ من برا",lat:"21.46873929382933",lon:"39.17221858176794"},
+{name:"ss 5 مش شغاله",lat:"21.46871280230235",lon:"39.17210992677209"},
+{name:"c 520/ss 520nco 45",lat:"21.46536559110111",lon:"39.17276622305867"},
+{name:"com camer building",lat:"21.46775715989675",lon:"39.17260134060498"},
+{name:"com AD ss400 co 03",lat:"21.4824729",lon:"39.1720685"},
+{name:"com 37 ss 400 co 01. and co 37",lat:"21.48526138429789",lon:"39.17164841223769"},
+{name:"ss 400",lat:"21.47993403198537",lon:"39.17192017566475"},
+{name:"com 400",lat:"21.48001051798952",lon:"39.17203860693602"},
+{name:"ss 510",lat:"21.4637310375406",lon:"39.17565381136392"},
+{name:"com 17",lat:"21.46462681651297",lon:"39.17690871443985"},
+{name:"com 9",lat:"21.45757212434175",lon:"39.17690104120416"},
+{name:"com 490 ss490",lat:"21.45136218089139",lon:"39.17799433108237"},
+{name:"com 12b ss490 co22",lat:"21.45186203610357",lon:"39.17788058880959"},
+{name:"com 302 ss 520 co 40",lat:"21.46797845497777",lon:"39.1740413527269"},
+{name:"com 10 co 44",lat:"21.46547158518499",lon:"39.17387727758379"},
+{name:"com 1 داخل لوجي بوينت",lat:"21.48753173797151",lon:"39.16336053106166"},
+{name:"com 4 لوجي بوينت",lat:"21.48976159757246",lon:"39.16292517781784"},
+{name:"lgp 10",lat:"21.48938850809955",lon:"39.16411195521276"},
+{name:"lgp 8",lat:"21.49009950262934",lon:"39.1640382010281"},
+{name:"lgp 6",lat:"21.49006464449755",lon:"39.16475293637638"},
+{name:"lgp 3 مقفوله معرفتش لفتحخا",lat:"21.49029166894485",lon:"39.16522409757448"},
+{name:"lgp 9 مقفول",lat:"21.48831462643164",lon:"39.16429430399451"},
+{name:"lgp pss1 مقفول",lat:"21.48633368686858",lon:"39.16488700585275"},
+{name:"lgp pss2",lat:"21.48640218573224",lon:"39.1653898420071"},
+{name:"lgp pss3 مقفول",lat:"21.48662546204745",lon:"39.16663446744867"},
+{name:"lgp ss",lat:"21.48512136739171",lon:"39.16430552678565"},
+{name:"lgp pss4",lat:"21.48542167308851",lon:"39.16553001126478"},
+{name:"lgp pss5",lat:"21.48536095251082",lon:"39.16503519410719"},
+{name:"com 40nss 490 co 24",lat:"21.4477985",lon:"39.1748165"},
+{name:"com 39",lat:"21.44821867391666",lon:"39.17475535853134"},
+{name:"com 36",lat:"21.4790182",lon:"39.1692194"},
+{name:"داخل مبني السفتي ملهوش اسم",lat:"21.47497856641728",lon:"39.17196749855339"},
+{name:"c xray 02/ss 530 c0 67",lat:"21.4719686",lon:"39.1707392"},
+{name:"com custom 1,2",lat:"21.48460036232951",lon:"39.16293833206487"},
+{name:"com 101 (١،٢)واحد منهم شغل",lat:"21.48038433459455",lon:"39.15221455569976"},
+{name:"marine building co 84,85",lat:"21.470521718284",lon:"39.14967288225927"},
+{name:"com 430",lat:"21.47492350633631",lon:"39.15433710206729"},
+{name:"com nh mosque",lat:"21.47066754800876",lon:"39.17265606628311"},
+{name:"com 17-2 ss 510 co49",lat:"21.46447550675963",lon:"39.17551088397761"},
+{name:"ss 301",lat:"21.46820265044454",lon:"39.17533428836056"},
+{name:"com 7 /ss510/co 47",lat:"21.46305116039372",lon:"39.17602024465113"},
+{name:"com 44,45",lat:"21.47239079483457",lon:"39.16575919936018"},
+{name:"com 8/co 52",lat:"21.45383560831376",lon:"39.16923635967564"},
+{name:"com دون اسم",lat:"21.45401051102046",lon:"39.17039127357494"},
+{name:"com دون اسم",lat:"21.45387550743537",lon:"39.16983848333236"},
+{name:"com 31A ,31b /ss 500/co 53 co 54",lat:"21.45363524322566",lon:"39.17085376507505"},
+{name:"com 470",lat:"21.44734035500992",lon:"39.16311499748534"},
+{name:"ss 470",lat:"21.44738409973404",lon:"39.16300470083976"},
+{name:"com 11a co 32",lat:"21.44877125565699",lon:"39.16940820077453"},
+{name:"com 11b co 33",lat:"21.44895785013037",lon:"39.16934753015136"},
+{name:"com 6/co56",lat:"21.46016076200227",lon:"39.1673395016043"},
+{name:"com 48 co 58",lat:"21.45997093379549",lon:"39.1707998044029"},
+{name:"ss 4",lat:"21.47255928879515",lon:"39.16615457762009"},
+{name:"com 4",lat:"21.47242930648399",lon:"39.16615592593603"},
+{name:"com 450",lat:"21.45721893314636",lon:"39.16103554817268"},
+{name:"ss 450",lat:"21.4573248481461",lon:"39.16106830697331"},
+{name:"cok 46/sw 530 co 12",lat:"21.47379952129233",lon:"39.16793441170343"},];
+
+/* ===== LOAD SAVED ===== */
+let places = [...basePlaces];
+const saved = localStorage.getItem("my_places");
+if(saved){
+    places = places.concat(JSON.parse(saved));
+}
+
+/* ===== ELEMENTS ===== */
+const list = document.getElementById("list");
+const search = document.getElementById("search");
+const count = document.getElementById("count");
+
+function saveLocal(custom){
+    localStorage.setItem("my_places", JSON.stringify(custom));
+}
+
+function openMap(lat,lon){
+    window.open(`https://www.google.com/maps?q=${lat},${lon}`,'_blank');
+}
+
+/* ===== ADD LOCATION FIXED ===== */
+function addMyLocation(){
+    if(location.protocol !== "https:" && location.hostname !== "localhost"){
+        alert("⚠️ GPS لا يعمل إلا من HTTPS أو localhost");
+        return;
+    }
+
+    if(!navigator.geolocation){
+        alert("الجهاز لا يدعم GPS");
+        return;
+    }
+
+    const name = prompt("اكتب اسم الموقع:");
+    if(!name) return;
+
+    navigator.geolocation.getCurrentPosition(
+        pos=>{
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+
+            const newPlace = {name,lat,lon};
+            places.push(newPlace);
+
+            const custom = JSON.parse(localStorage.getItem("my_places")||"[]");
+            custom.push(newPlace);
+            saveLocal(custom);
+
+            render();
+        },
+        err=>{
+            alert("لم يتم الحصول على الموقع \nتأكد من السماح بالـ Location");
+        },
+        {enableHighAccuracy:true,timeout:10000}
+    );
+}
+
+/* ===== RENDER ===== */
+function render(filter=""){
+    list.innerHTML="";
+    const filtered = places.filter(p=>p.name.toLowerCase().includes(filter.toLowerCase()));
+    count.textContent = `Total Locations: ${filtered.length}`;
+
+    filtered.forEach(p=>{
+        const li=document.createElement("li");
+        const name=document.createElement("div");
+        name.className="name";
+        name.textContent=p.name;
+
+        const btn=document.createElement("button");
+        btn.className="btn";
+        btn.textContent="MAP";
+        btn.onclick=e=>{
+            e.stopPropagation();
+            openMap(p.lat,p.lon);
+        };
+
+        li.onclick=()=>openMap(p.lat,p.lon);
+        li.appendChild(name);
+        li.appendChild(btn);
+        list.appendChild(li);
+    });
+}
+
+search.addEventListener("input",e=>render(e.target.value));
+render();
+</script>
+
+</body>
+</html>
